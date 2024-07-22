@@ -52,6 +52,21 @@ def add():
         return redirect(url_for('home'))
     return render_template('add.html')
 
+# update page
+@app.route('/edit/id/=<int:id>', methods=['GET', 'POST'])
+def edit(id):
+    book = Books.query.get_or_404(id)
+
+    if request.method == 'POST':
+        new_rating = request.form['new_rating']
+        book.rating = new_rating
+
+        db.session.add(book)
+        db.session.commit()
+
+        return redirect(url_for('home'))
+    return render_template('edit.html', book=book)
+
 
 if __name__ == "__main__":
     # Initialize the database and create tables
