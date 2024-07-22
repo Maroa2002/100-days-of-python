@@ -34,11 +34,22 @@ class Books(db.Model):
 # home page
 @app.route('/')
 def home():
-    return render_template('index.html')
+    books = Books.query.all()
+    return render_template('index.html', books=books)
 
 # /add page
-@app.route('/add')
+@app.route('/add', methods=['GET', 'POST'])
 def add():
+    if request.method == 'POST':
+        book = Books(
+            title = request.form['title'],
+            author = request.form['author'],
+            rating = request.form['rating'],
+        )
+        db.session.add(book)
+        db.session.commit()
+
+        return redirect(url_for('home'))
     return render_template('add.html')
 
 
