@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """ authentication """
+
 from flask import Flask, render_template, request, url_for, redirect, flash, send_from_directory
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_sqlalchemy import SQLAlchemy
@@ -11,6 +12,9 @@ app = Flask(__name__)
 
 # CSRF_Token secret key
 app.config['SECRET_KEY'] = 'secret-key-goes-here'
+
+# creating path for the downloadable files
+app.config['UPLOAD_FOLDER'] = os.path.join(app.root_path, 'static', 'files')
 
 # Retrieve password from the environment variable
 db_password = os.getenv('DB_PASSWORD')
@@ -40,8 +44,22 @@ def home():
     return render_template("index.html")
 
 
-@app.route('/register')
+@app.route('/register', methods=['GET', 'POST'])
 def register():
+    if request.method == 'POST':
+        email = request.form['email']
+        password = request.form['password']
+        name = request.form['name']
+        user = User(
+            email = email,
+            password = password,
+            name = name,
+        )
+
+        db.session.add(user)
+        db.session.commit()
+
+        return redirect(url_for('secrets', name=user.name))
     return render_template("register.html")
 
 
@@ -52,7 +70,8 @@ def login():
 
 @app.route('/secrets')
 def secrets():
-    return render_template("secrets.html")
+    name = request.args.get('name')
+    return render_template("secrets.html", name=name)
 
 
 @app.route('/logout')
@@ -62,7 +81,7 @@ def logout():
 
 @app.route('/download')
 def download():
-    pass
+    return send_from_directory(app.config['UPLOAD_FOLDER'], 'cheat_sheet.pdf')
 
 
 if __name__ == "__main__":
