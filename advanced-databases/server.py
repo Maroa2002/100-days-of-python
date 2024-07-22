@@ -52,7 +52,7 @@ def add():
         return redirect(url_for('home'))
     return render_template('add.html')
 
-# update page
+# Edit rating
 @app.route('/edit/id/=<int:id>', methods=['GET', 'POST'])
 def edit(id):
     book = Books.query.get_or_404(id)
@@ -66,6 +66,14 @@ def edit(id):
 
         return redirect(url_for('home'))
     return render_template('edit.html', book=book)
+
+# Delete Record
+@app.route('/delete/<int:id>')
+def delete(id):
+    book = Books.query.get_or_404(id)
+    db.session.delete(book)
+    db.session.commit()
+    return redirect(url_for('home'))
 
 
 if __name__ == "__main__":
