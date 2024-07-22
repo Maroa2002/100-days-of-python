@@ -1,3 +1,6 @@
+#!/usr/bin/env python3
+""" Books app """
+
 from flask import Flask, render_template, request, url_for, redirect
 from flask_sqlalchemy import SQLAlchemy
 import os
@@ -10,8 +13,9 @@ db_password = os.getenv('DB_PASSWORD')
 if not db_password:
     raise ValueError("No DB_PASSWORD set for Flask application")
 
+
 # SQLAlchemy configurations
-app.config['SQLALCHEMY_DATABASE_URI'] = f'mysql://root:{db_password}/@localhost/books_collection'
+app.config['SQLALCHEMY_DATABASE_URI'] = f'mysql+pymysql://root:{db_password}@localhost/books_collection'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
@@ -39,5 +43,7 @@ def add():
 
 
 if __name__ == "__main__":
-    db.create_all()
+    # Initialize the database and create tables
+    with app.app_context():
+        db.create_all()
     app.run(debug=True)
