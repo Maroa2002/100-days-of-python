@@ -81,7 +81,7 @@ def register():
         login_user(user)
 
         # Redirect the user after registration and login
-        return redirect(url_for('secrets', name=user.name))
+        return redirect(url_for('secrets'))
     
     return render_template("register.html")
 
@@ -89,12 +89,29 @@ def register():
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        user = User.query.filter_by(email=request.form.get('email')).first()
-        # Check for hashed_password match
-        password_match = check_password_hash(user.password, request.form.get('password'))
-        if user and password_match:
-            login_user(user)
-            return redirect(url_for('secrets', name=user.name))
+        email = request.form.get('email')
+        password = request.form.get('password')
+
+        # Check for empty email and password fields
+        if not email or not password:
+            flash('Email and Password are required!', 'error')
+            return redirect(url_for('login'))
+
+        # Query for user data associated with the email
+        user = User.query.filter_by(email=email).first()
+        if user:
+            # Check for hashed_password match
+            password_match = check_password_hash(user.password, password)
+            if password_match:
+                login_user(user)
+                flash('Successfully logged in!', 'success')
+                return redirect(url_for('secrets'))
+            else:
+                flash('Incorrect Password!', 'error')
+                return redirect(url_for('login'))
+        else:
+            flash('Email does not exist.Please Try Again!', 'error')
+            return redirect(url_for('login'))                    
         
     return render_template("login.html")
 
@@ -102,8 +119,8 @@ def login():
 @app.route('/secrets')
 @login_required
 def secrets():
-    name = request.args.get('name')
-    return render_template("secrets.html", name=name)
+    current_user_name = current_user.name
+    return render_template("secrets.html", name=current_user_name)
 
 
 @app.route('/logout')
