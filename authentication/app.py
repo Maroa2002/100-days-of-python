@@ -59,30 +59,39 @@ def home():
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
-        # Hashing and salting the user password
-        hash_salted_password = generate_password_hash(
-                password=request.form['password'],
-                method='pbkdf2:sha256',
-                salt_length=8,
-                )
+        name = request.form.get('name')
+        email = request.form.get('email')
+        password = request.form.get('password')
         
-        # Create instance of User
-        user = User(
-            email = request.form['email'],
-            password = hash_salted_password,
-            name = request.form['name'],
-        )
+        user = User.query.filter_by(email=email).first()
+        if user:
+            flash('Email already in use! Log in instead!', 'error')
+            return redirect(url_for('login'))
+        else:
+            # Hashing and salting the user password
+            hash_salted_password = generate_password_hash(
+                    password=password,
+                    method='pbkdf2:sha256',
+                    salt_length=8
+                    )
 
-        # Add user to the database
-        db.session.add(user)
-        db.session.commit()
+            # Create instance of User
+            user = User(
+                email = email,
+                password = hash_salted_password,
+                name = name,
+            )
 
-        # Login the registered user
-        login_user(user)
+            # Add user to the database
+            db.session.add(user)
+            db.session.commit()
 
-        # Redirect the user after registration and login
-        return redirect(url_for('secrets'))
-    
+            # Login the registered user
+            login_user(user)
+
+            # Redirect the user after registration and login
+            return redirect(url_for('secrets'))
+
     return render_template("register.html")
 
 
